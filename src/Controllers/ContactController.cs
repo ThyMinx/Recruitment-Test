@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Vuture.Exceptions.ExceptionResponses;
 using Vuture.Models.Dtos;
 using Vuture.Services;
+using Vuture.Validation;
 
 namespace Vuture.Controllers
 {
@@ -49,7 +50,29 @@ namespace Vuture.Controllers
         [Route("")]
         public ActionResult<ReadContactDto> CreateContact([FromBody] CreateContactDto createContactDto)
         {
-            throw new NotImplementedException();
+            try
+            {
+                ModelValidation.ValidateCreateContactDto(createContactDto);
+                ReadContactDto readContactDto = _contactService.CreateContact(createContactDto);
+                return new JsonResult(readContactDto);
+            }
+            catch (NotFoundRequestExceptionResponse ex)
+            {
+                //Log exception here
+                return new StatusCodeResult(ex.StatusCode);
+                throw ex;
+            }
+            catch (BadRequestExceptionResponse ex)
+            {
+                //Log exception here
+                return new StatusCodeResult(ex.StatusCode);
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                //Log exception here
+                throw ex;
+            }
         }
 
         [HttpPut]

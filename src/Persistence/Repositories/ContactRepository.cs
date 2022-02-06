@@ -55,7 +55,16 @@ namespace Vuture.Persistence.Repositories
 
         public Contact CreateContact(Contact Contact)
         {
-            throw new NotImplementedException();
+            try
+            {
+                _context.Contacts.Add(Contact);
+                _context.SaveChanges();
+                return Contact;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
         public Contact UpdateContact(Contact Contact)

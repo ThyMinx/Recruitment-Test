@@ -14,7 +14,35 @@ namespace Vuture.Services
 
         public ReadContactDto CreateContact(CreateContactDto dto)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Contact contact = new Contact()
+                {
+                    FirstName = dto.FirstName,
+                    LastName = dto.LastName,
+                    EmailAddress = dto.EmailAddress,
+                    Title = dto.Title,
+                    Company = dto.Company,
+                    Status = dto.Status
+                };
+                Contact createdContact = _contactRepository.CreateContact(contact);
+                ReadContactDto readContact = new ReadContactDto()
+                {
+                    Id = createdContact.Id,
+                    FirstName = createdContact.FirstName,
+                    LastName = createdContact.LastName,
+                    EmailAddress = createdContact.EmailAddress,
+                    Title = createdContact.Title,
+                    Company = createdContact.Company,
+                    Status = createdContact.Status
+                };
+                return readContact;
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
         }
 
         public ReadContactDto UpdateContactById(int id, UpdateContactDto dto)

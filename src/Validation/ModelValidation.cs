@@ -9,9 +9,12 @@ namespace Vuture.Validation
         public static void ValidateCreateContactDto(CreateContactDto entity)
         {
             var validationResults = new List<ValidationResult>();
-            ValidateEntityPropertyIsNotNull(nameof(entity.FirstName), entity.FirstName, validationResults);
-            ValidateEntityPropertyIsNotNull(nameof(entity.LastName), entity.LastName, validationResults);
-            ValidateEntityPropertyIsNotNull(nameof(entity.EmailAddress), entity.EmailAddress, validationResults);
+            //ValidateEntityPropertyIsNotNull(nameof(entity.FirstName), entity.FirstName, validationResults);
+            //ValidateEntityPropertyIsNotNull(nameof(entity.LastName), entity.LastName, validationResults);
+            //ValidateEntityPropertyIsNotNull(nameof(entity.EmailAddress), entity.EmailAddress, validationResults);
+            ValidateEntityPropertyIsNotNullOrEmpty(nameof(entity.FirstName), entity.FirstName, validationResults);
+            ValidateEntityPropertyIsNotNullOrEmpty(nameof(entity.LastName), entity.LastName, validationResults);
+            ValidateEntityPropertyIsNotNullOrEmpty(nameof(entity.EmailAddress), entity.EmailAddress, validationResults);
 
             if (validationResults.Count > 0)
             {
@@ -43,6 +46,20 @@ namespace Vuture.Validation
             if (value == null)
             {
                 validationResults.Add(new ValidationResult(entityName));
+            }
+        }
+        private static void ValidateEntityPropertyIsNotNullOrEmpty<T>(string entityName, T value, ICollection<ValidationResult> validationResults)
+        {
+            if (value == null)
+            {
+                validationResults.Add(new ValidationResult(entityName));
+            }
+            if (Type.GetTypeCode(value.GetType()) == TypeCode.String)
+            {
+                if (string.IsNullOrEmpty(value.ToString()))
+                {
+                    validationResults.Add(new ValidationResult(entityName));
+                }
             }
         }
     }
