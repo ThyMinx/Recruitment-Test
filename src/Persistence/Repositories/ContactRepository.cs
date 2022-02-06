@@ -69,7 +69,27 @@ namespace Vuture.Persistence.Repositories
 
         public Contact UpdateContact(Contact Contact)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Contact selected = _context.Contacts.Where(c => c.Id == Contact.Id).FirstOrDefault();
+                if (selected == null)
+                {
+                    throw new NotFoundRequestExceptionResponse("No contact with the id: " + Contact.Id);
+                }
+                selected.FirstName = Contact.FirstName;
+                selected.LastName = Contact.LastName;
+                selected.EmailAddress = Contact.EmailAddress;
+                selected.Title = Contact.Title;
+                selected.Status = Contact.Status;
+                selected.Company = Contact.Company;
+                _context.Contacts.Update(selected);
+                _context.SaveChanges();
+                return selected;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
     }
 }

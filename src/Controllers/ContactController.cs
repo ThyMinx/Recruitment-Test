@@ -79,7 +79,29 @@ namespace Vuture.Controllers
         [Route("{id}")]
         public ActionResult<ReadContactDto> UpdateContactById(int id, UpdateContactDto updateContactDto)
         {
-            throw new NotImplementedException();
+            try
+            {
+                ModelValidation.ValidateUpdateContactDto(updateContactDto);
+                ReadContactDto readContactDto = _contactService.UpdateContactById(id, updateContactDto);
+                return new JsonResult(readContactDto);
+            }
+            catch (NotFoundRequestExceptionResponse ex)
+            {
+                //Log exception here
+                return new StatusCodeResult(ex.StatusCode);
+                throw ex;
+            }
+            catch (BadRequestExceptionResponse ex)
+            {
+                //Log exception here
+                return new StatusCodeResult(ex.StatusCode);
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                //Log exception here
+                throw ex;
+            }
         }
 
         [HttpDelete]
