@@ -1,11 +1,15 @@
 using Vuture.Models.Dtos;
+using Vuture.Persistence.Repositories.Interfaces;
 
 namespace Vuture.Services
 {
     public class ContactService : IContactService
     {
-        public ContactService()
+        private readonly IContactRepository _contactRepository;
+
+        public ContactService(IContactRepository contactRepository)
         {
+            _contactRepository = contactRepository;
         }
 
         public ReadContactDto CreateContact(CreateContactDto dto)
@@ -20,7 +24,34 @@ namespace Vuture.Services
 
         public ReadContactDto GetContactById(int id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Contact contact = _contactRepository.GetContactById(id);
+                if (contact != null)
+                {
+                    ReadContactDto dto = new ReadContactDto()
+                    {
+                        Id = contact.Id,
+                        FirstName = contact.FirstName,
+                        LastName = contact.LastName,
+                        EmailAddress = contact.EmailAddress,
+                        Title = contact.Title,
+                        Company = contact.Company,
+                        Status = contact.Status
+                    };
+                    return dto;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+            //throw new NotImplementedException();
         }
 
         public void DeleteContactById(int id)

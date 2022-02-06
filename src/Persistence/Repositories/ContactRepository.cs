@@ -1,3 +1,4 @@
+using Vuture.Exceptions.ExceptionResponses;
 using Vuture.Persistence.Repositories.Interfaces;
 
 namespace Vuture.Persistence.Repositories
@@ -8,6 +9,7 @@ namespace Vuture.Persistence.Repositories
 
         public ContactRepository(ContactDbContext context)
         {
+            _context = context;
         }
 
         void IContactRepository.SaveChanges()
@@ -17,7 +19,20 @@ namespace Vuture.Persistence.Repositories
 
         public Contact GetContactById(int Id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Contact contact = _context.Contacts.Where(c => c.Id == Id).FirstOrDefault();
+                if (contact == null)
+                {
+                    throw new NotFoundRequestExceptionResponse("No contact with the id: " + Id);
+                }
+                return contact;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            //throw new NotImplementedException();
         }
 
         public void DeleteContactById(int Id)

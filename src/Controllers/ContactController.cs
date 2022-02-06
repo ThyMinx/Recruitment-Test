@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Vuture.Exceptions.ExceptionResponses;
 using Vuture.Models.Dtos;
+using Vuture.Services;
 
 namespace Vuture.Controllers
 {
@@ -7,15 +9,29 @@ namespace Vuture.Controllers
     [ApiController]
     public class ContactController : ControllerBase
     {
-        public ContactController()
+        private readonly IContactService _contactService;
+
+        public ContactController(IContactService contactService)
         {
+            _contactService = contactService;
         }
 
         [HttpGet]
         [Route("{id}")]
         public IActionResult GetContactById(int id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var contact = _contactService.GetContactById(id);
+                return new JsonResult(contact);
+            }
+            catch (NotFoundRequestExceptionResponse ex)
+            {
+                //Log exception here
+                return new StatusCodeResult(ex.StatusCode);
+                throw ex;
+            }
+            //throw new NotImplementedException();
         }
 
         [HttpPost]
