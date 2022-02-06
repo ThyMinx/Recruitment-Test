@@ -60,5 +60,24 @@ namespace Vuture.Test.Unit.Services
             Assert.AreSame(contact.Status, contactDto.Status);
             Assert.AreSame(contact.Id, contactDto.Id);
         }
+
+
+        /// <summary>
+        /// This test should not be able to delete an item and it should get a 404 Not Found.
+        /// </summary>
+        /// <param name="id">This is the id of a contact that is passed in by [TestCase()]</param>
+        public void DeleteContactById_FailTest(int id)
+        {
+
+        }
+
+        /// <summary>
+        /// This test should be able to delete an item and it should get a 200 ok.
+        /// </summary>
+        /// <param name="id">This is the id of a contact that is passed in by [TestCase()]</param>
+        public void DeleteContactById_PassTest(int id)
+        {
+
+        }
     }
 }

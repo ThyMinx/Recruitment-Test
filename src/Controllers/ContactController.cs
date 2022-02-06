@@ -31,6 +31,17 @@ namespace Vuture.Controllers
                 return new StatusCodeResult(ex.StatusCode);
                 throw ex;
             }
+            catch (BadRequestExceptionResponse ex)
+            {
+                //Log exception here
+                return new StatusCodeResult(ex.StatusCode);
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                //Log exception here
+                throw ex;
+            }
             //throw new NotImplementedException();
         }
 
@@ -52,7 +63,28 @@ namespace Vuture.Controllers
         [Route("{id}")]
         public ActionResult DeleteContactById(int id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                _contactService.DeleteContactById(id);
+                return new StatusCodeResult(StatusCodes.Status200OK);
+            }
+            catch (NotFoundRequestExceptionResponse ex)
+            {
+                //Log exception here
+                return new StatusCodeResult(ex.StatusCode);
+                throw ex;
+            }
+            catch (BadRequestExceptionResponse ex)
+            {
+                //Log exception here
+                return new StatusCodeResult(ex.StatusCode);
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                //Log exception here
+                throw ex;
+            }
         }
     }
 }

@@ -56,7 +56,14 @@ namespace Vuture.Services
 
         public void DeleteContactById(int id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                _contactRepository.DeleteContactById(id);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
     }
 }

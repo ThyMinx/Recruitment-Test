@@ -37,7 +37,20 @@ namespace Vuture.Persistence.Repositories
 
         public void DeleteContactById(int Id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Contact contact = _context.Contacts.Where(c => c.Id == Id).FirstOrDefault();
+                if (contact == null)
+                {
+                    throw new NotFoundRequestExceptionResponse("No contact with the id: " + Id);
+                }
+                _context.Contacts.Remove(contact);
+                _context.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
         public Contact CreateContact(Contact Contact)
