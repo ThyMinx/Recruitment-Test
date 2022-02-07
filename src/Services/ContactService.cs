@@ -1,3 +1,4 @@
+using Vuture.Exceptions.ExceptionResponses;
 using Vuture.Models.Dtos;
 using Vuture.Persistence.Repositories.Interfaces;
 
@@ -71,6 +72,10 @@ namespace Vuture.Services
                     Company = updatedContact.Company,
                     Status = updatedContact.Status
                 };
+                if (readContact == null)
+                {
+                    throw new NotFoundRequestExceptionResponse("No contact with the id: " + id);
+                }
                 return readContact;
             }
             catch (Exception ex)
@@ -100,7 +105,7 @@ namespace Vuture.Services
                 }
                 else
                 {
-                    return null;
+                    throw new NotFoundRequestExceptionResponse("No contact with the id: " + id);
                 }
             }
             catch (Exception ex)
