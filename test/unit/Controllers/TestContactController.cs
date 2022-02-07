@@ -92,9 +92,16 @@ namespace Vuture.Test.Unit.Controllers
         /// This test should not be able to delete an item and it should get a 404 Not Found.
         /// </summary>
         /// <param name="id">This is the id of a contact that is passed in by [TestCase()]</param>
+        [Test]
+        [TestCase(-1)]
         public void DeleteContactById_FailTest(int id)
         {
+            var result = (StatusCodeResult)_contactController.DeleteContactById(id);
 
+            if (result.StatusCode.Equals(404))
+                Assert.Pass();
+            else
+                Assert.Fail();
         }
 
         /// <summary>

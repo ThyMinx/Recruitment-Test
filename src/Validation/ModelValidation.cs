@@ -28,9 +28,9 @@ namespace Vuture.Validation
         public static void ValidateUpdateContactDto(UpdateContactDto entity)
         {
             var validationResults = new List<ValidationResult>();
-            ValidateEntityPropertyIsNotNull(nameof(entity.FirstName), entity.FirstName, validationResults);
-            ValidateEntityPropertyIsNotNull(nameof(entity.LastName), entity.LastName, validationResults);
-            ValidateEntityPropertyIsNotNull(nameof(entity.EmailAddress), entity.EmailAddress, validationResults);
+            ValidateEntityPropertyIsNotNullOrEmpty(nameof(entity.FirstName), entity.FirstName, validationResults);
+            ValidateEntityPropertyIsNotNullOrEmpty(nameof(entity.LastName), entity.LastName, validationResults);
+            ValidateEntityPropertyIsNotNullOrEmpty(nameof(entity.EmailAddress), entity.EmailAddress, validationResults);
 
             if (validationResults.Count > 0)
             {
