@@ -22,9 +22,15 @@ namespace Vuture.Test.Unit.Persistence
 
         #region Tests for Create
         [Test]
-        [TestCase("James", "Cairns", "james.cairns@email.com", "Vuture", "Working", "Developer")]
+        [TestCase("James", "Cairns", "cairns.james@email.com", "Vuture", "Holiday", "Lead")]
         [TestCase("Fawn", "Massey", "mrs@email.com", "Vuture", "Working", "Lead")]
         [TestCase("Ian", "Tufft", "some@email.com", "Bank", "Holiday", "Accounts")]
+        [TestCase("James", "Cairns", "cairns.james@email.com", "", "Holiday", "Lead")]
+        [TestCase("Fawn", "Massey", "mrs@email.com", "Vuture", "", "Lead")]
+        [TestCase("Ian", "Tufft", "some@email.com", "Bank", "Holiday", "")]
+        [TestCase("James", "Cairns", "cairns.james@email.com", null, "Holiday", "Lead")]
+        [TestCase("Fawn", "Massey", "mrs@email.com", "Vuture", null, "Lead")]
+        [TestCase("Ian", "Tufft", "some@email.com", "Bank", "Holiday", null)]
         public void Test_CreateContact_Should_AddContactToDb(string firstName, string lastName, string email, string company, string status, string title)
         {
             var contact = new Contact()
@@ -74,7 +80,7 @@ namespace Vuture.Test.Unit.Persistence
         }
         #endregion
 
-        #region Tests for Read
+        #region Tests for Read Single
         [Test]
         [TestCase(1)]
         [TestCase(2)]
@@ -138,6 +144,68 @@ namespace Vuture.Test.Unit.Persistence
 
             //Assert
             Assert.Throws<NotFoundRequestExceptionResponse>(() => contactRepo.GetContactById(id));
+        }
+        #endregion
+
+        #region Tests for Read Multiple
+        [Test]
+        [TestCase("Vuture")]
+        [TestCase("Smiths")]
+        [TestCase("Total")]
+        [TestCase("vuture")]
+        [TestCase("stuff")]
+        [TestCase("company")]
+        public void Test_GetContactsByCompany_ShouldReceive_CorrectContacts(string company)
+        {
+            //Arrange
+            List<Contact> data = new List<Contact>()
+            {
+                new Contact { Id = 1,FirstName = "James",LastName = "Cairns",EmailAddress = "James.Cairns@email.com",Company = company,Status = "Working",Title = "Developer" },
+                new Contact { Id = 2,FirstName = "Judy",LastName = "Law",EmailAddress = "Judy.Law@email.com",Company = company,Status = "Working",Title = "Lead" },
+                new Contact { Id = 3,FirstName = "Aaron",LastName = "Aaronson",EmailAddress = "Aaron@email.co.uk",Company = company,Status = "Working",Title = "Developer" },
+                new Contact { Id = 4,FirstName = "Daniel",LastName = "Dealer",EmailAddress = "Deals@email.au",Company = "unknown",Status = "Working",Title = "Accounts" },
+                new Contact { Id = 5,FirstName = "Dave",LastName = "Bonting",EmailAddress = "Dave@email.co",Company = company,Status = "Working",Title = "Developer" },
+                new Contact { Id = 6,FirstName = "Chris",LastName = "Drews",EmailAddress = "Chris@email.com",Company = "unkown",Status = "Working",Title = "Lead" }
+            };
+            var db = GetTestDbContext();
+            data.ForEach(c => db.Contacts.Add(c));
+            db.SaveChanges();
+
+            List<Contact> expected = data.Where(d => d.Company == company).ToList();
+
+            var contactRepo = new ContactRepository(db);
+
+            //Act
+            var result = contactRepo.GetContactsByCompany(company);
+
+            //Assert
+            Assert.AreEqual(expected, result);
+        }
+
+        [Test]
+        [TestCase("nothing")]
+        [TestCase("something")]
+        [TestCase("microsoft")]
+        public void Test_GetContactsByCompany_ShouldReceive_NotFoundRequestExceptionResponse(string company)
+        {
+            //Arrange
+            List<Contact> data = new List<Contact>()
+            {
+                new Contact { Id = 1,FirstName = "James",LastName = "Cairns",EmailAddress = "James.Cairns@email.com",Company = "Vuture",Status = "Working",Title = "Developer" },
+                new Contact { Id = 2,FirstName = "Judy",LastName = "Law",EmailAddress = "Judy.Law@email.com",Company = "Vuture",Status = "Working",Title = "Lead" },
+                new Contact { Id = 3,FirstName = "Aaron",LastName = "Aaronson",EmailAddress = "Aaron@email.co.uk",Company = "Vuture",Status = "Working",Title = "Developer" },
+                new Contact { Id = 4,FirstName = "Daniel",LastName = "Dealer",EmailAddress = "Deals@email.au",Company = "unknown",Status = "Working",Title = "Accounts" },
+                new Contact { Id = 5,FirstName = "Dave",LastName = "Bonting",EmailAddress = "Dave@email.co",Company = "Vuture",Status = "Working",Title = "Developer" },
+                new Contact { Id = 6,FirstName = "Chris",LastName = "Drews",EmailAddress = "Chris@email.com",Company = "unkown",Status = "Working",Title = "Lead" }
+            };
+            var db = GetTestDbContext();
+            data.ForEach(c => db.Contacts.Add(c));
+            db.SaveChanges();
+
+            var contactRepo = new ContactRepository(db);
+
+            //Assert
+            Assert.Throws<NotFoundRequestExceptionResponse>(() => contactRepo.GetContactsByCompany(company));
         }
         #endregion
 

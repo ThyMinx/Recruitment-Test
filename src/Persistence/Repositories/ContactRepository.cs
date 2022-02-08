@@ -34,6 +34,22 @@ namespace Vuture.Persistence.Repositories
             }
             //throw new NotImplementedException();
         }
+        public List<Contact> GetContactsByCompany(string company)
+        {
+            try
+            {
+                List<Contact> contacts = _context.Contacts.Where(c => c.Company.ToLower() == company.ToLower()).ToList();
+                if (!contacts.Any())
+                {
+                    throw new NotFoundRequestExceptionResponse("No contacts with the company: " + company);
+                }
+                return contacts;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
 
         public void DeleteContactById(int Id)
         {

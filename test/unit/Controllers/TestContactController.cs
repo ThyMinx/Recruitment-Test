@@ -120,7 +120,7 @@ namespace Vuture.Test.Unit.Controllers
         }
         #endregion
 
-        #region Tests for Read
+        #region Tests for Read Single
         [Test]
         [TestCase(1, "James", "Cairns", "cairns.james@email.com", "Vuture", "Holiday", "Lead")]
         [TestCase(3, "Fawn", "Massey", "mrs@email.com", "Vuture", "Working", "Lead")]
@@ -162,6 +162,68 @@ namespace Vuture.Test.Unit.Controllers
             var controller = GetContactController();
 
             var result = controller.GetContactById(id) as StatusCodeResult;
+            Assert.AreEqual(result.StatusCode, new NotFoundRequestExceptionResponse("").StatusCode);
+        }
+        #endregion
+
+        #region Tests for Read Multiple
+        [Test]
+        [TestCase("Business")]
+        [TestCase("Vuture")]
+        [TestCase("Bank")]
+        [TestCase("Company")]
+        public void Test_GetContactsByCompany_ShouldReceive_ReadContactDtos(string company)
+        {
+            List<ReadContactDto> data = new List<ReadContactDto>()
+            {
+                new ReadContactDto { Id = 1,FirstName = "James",LastName = "Cairns",EmailAddress = "James.Cairns@email.com",Company = company,Status = "Working",Title = "Developer" },
+                new ReadContactDto { Id = 2,FirstName = "Judy",LastName = "Law",EmailAddress = "Judy.Law@email.com",Company = company,Status = "Working",Title = "Lead" },
+                new ReadContactDto { Id = 3,FirstName = "Aaron",LastName = "Aaronson",EmailAddress = "Aaron@email.co.uk",Company = company,Status = "Working",Title = "Developer" },
+                new ReadContactDto { Id = 4,FirstName = "Daniel",LastName = "Dealer",EmailAddress = "Deals@email.au",Company = "unknown",Status = "Working",Title = "Accounts" },
+                new ReadContactDto { Id = 5,FirstName = "Dave",LastName = "Bonting",EmailAddress = "Dave@email.co",Company = company,Status = "Working",Title = "Developer" },
+                new ReadContactDto { Id = 6,FirstName = "Chris",LastName = "Drews",EmailAddress = "Chris@email.com",Company = "unkown",Status = "Working",Title = "Lead" }
+            };
+            List<ReadContactDto> returned = data.Where(c => c.Company == company).ToList();
+            List<ReadContactDto> expected = new List<ReadContactDto>();
+            returned.ForEach(c => expected.Add(new ReadContactDto()
+            {
+                Id = c.Id,
+                FirstName = c.FirstName,
+                LastName = c.LastName,
+                EmailAddress = c.EmailAddress,
+                Company = c.Company,
+                Status = c.Status,
+                Title = c.Title
+            }));
+            _mockService.Setup(x => x.GetContactsByCompany(It.IsAny<string>())).Returns(returned);
+            var controller = GetContactController();
+
+            var result = controller.GetContactsByCompany(company) as JsonResult;
+            var resultObj = result.Value as List<ReadContactDto>;
+
+            Assert.AreEqual(resultObj.Count, expected.Count);
+            for (int i = 1; i < resultObj.Count; i++)
+            {
+                Assert.AreEqual(resultObj[i].Id, expected[i].Id);
+                Assert.AreEqual(resultObj[i].FirstName, expected[i].FirstName);
+                Assert.AreEqual(resultObj[i].LastName, expected[i].LastName);
+                Assert.AreEqual(resultObj[i].EmailAddress, expected[i].EmailAddress);
+                Assert.AreEqual(resultObj[i].Company, expected[i].Company);
+                Assert.AreEqual(resultObj[i].Status, expected[i].Status);
+                Assert.AreEqual(resultObj[i].Title, expected[i].Title);
+            }
+        }
+
+        [Test]
+        [TestCase("something")]
+        [TestCase("microsoft")]
+        [TestCase("apple")]
+        public void Test_GetContactsByCompany_Should_ThrowException(string company)
+        {
+            _mockService.Setup(x => x.GetContactsByCompany(It.IsAny<string>())).Throws(new NotFoundRequestExceptionResponse("No contact with the company: " + company));
+            var controller = GetContactController();
+
+            var result = controller.GetContactsByCompany(company) as StatusCodeResult;
             Assert.AreEqual(result.StatusCode, new NotFoundRequestExceptionResponse("").StatusCode);
         }
         #endregion

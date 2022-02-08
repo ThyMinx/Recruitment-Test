@@ -48,6 +48,35 @@ namespace Vuture.Controllers
             //throw new NotImplementedException();
         }
 
+        [HttpGet]
+        [Route("/GetContactsByCompany/{company}")]
+        public IActionResult GetContactsByCompany(string company)
+        {
+            try
+            {
+                var contacts = _contactService.GetContactsByCompany(company);
+                return new JsonResult(contacts);
+            }
+            catch (NotFoundRequestExceptionResponse ex)
+            {
+                _logger.LogError(ex.Message);
+                return new StatusCodeResult(ex.StatusCode);
+                throw ex;
+            }
+            catch (BadRequestExceptionResponse ex)
+            {
+                _logger.LogError(ex.Message);
+                return new StatusCodeResult(ex.StatusCode);
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw ex;
+            }
+            //throw new NotImplementedException();
+        }
+
         [HttpPost]
         [Route("")]
         public ActionResult<ReadContactDto> CreateContact([FromBody] CreateContactDto createContactDto)

@@ -27,16 +27,7 @@ namespace Vuture.Services
                     Status = dto.Status
                 };
                 Contact createdContact = _contactRepository.CreateContact(contact);
-                ReadContactDto readContact = new ReadContactDto()
-                {
-                    Id = createdContact.Id,
-                    FirstName = createdContact.FirstName,
-                    LastName = createdContact.LastName,
-                    EmailAddress = createdContact.EmailAddress,
-                    Title = createdContact.Title,
-                    Company = createdContact.Company,
-                    Status = createdContact.Status
-                };
+                ReadContactDto readContact = ContactToReadContactDto(createdContact);
                 return readContact;
             }
             catch (Exception ex)
@@ -62,16 +53,7 @@ namespace Vuture.Services
                     Status = dto.Status
                 };
                 Contact updatedContact = _contactRepository.UpdateContact(contact);
-                ReadContactDto readContact = new ReadContactDto()
-                {
-                    Id = updatedContact.Id,
-                    FirstName = updatedContact.FirstName,
-                    LastName = updatedContact.LastName,
-                    EmailAddress = updatedContact.EmailAddress,
-                    Title = updatedContact.Title,
-                    Company = updatedContact.Company,
-                    Status = updatedContact.Status
-                };
+                ReadContactDto readContact = ContactToReadContactDto(updatedContact);
                 if (readContact == null)
                 {
                     throw new NotFoundRequestExceptionResponse("No contact with the id: " + id);
@@ -91,22 +73,31 @@ namespace Vuture.Services
                 Contact contact = _contactRepository.GetContactById(id);
                 if (contact != null)
                 {
-                    ReadContactDto dto = new ReadContactDto()
-                    {
-                        Id = contact.Id,
-                        FirstName = contact.FirstName,
-                        LastName = contact.LastName,
-                        EmailAddress = contact.EmailAddress,
-                        Title = contact.Title,
-                        Company = contact.Company,
-                        Status = contact.Status
-                    };
+                    ReadContactDto dto = ContactToReadContactDto(contact);
                     return dto;
                 }
                 else
                 {
                     throw new NotFoundRequestExceptionResponse("No contact with the id: " + id);
                 }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+            //throw new NotImplementedException();
+        }
+
+        public List<ReadContactDto> GetContactsByCompany(string company)
+        {
+            try
+            {
+                List<ReadContactDto> contactDtos = new List<ReadContactDto>();
+                List<Contact> contacts = _contactRepository.GetContactsByCompany(company);
+                contacts.ForEach(c => contactDtos.Add(ContactToReadContactDto(c)));
+
+                return contactDtos;
             }
             catch (Exception ex)
             {
@@ -126,6 +117,21 @@ namespace Vuture.Services
             {
                 throw ex;
             }
+        }
+
+        public ReadContactDto ContactToReadContactDto(Contact contact)
+        {
+            ReadContactDto dto = new ReadContactDto()
+            {
+                Id = contact.Id,
+                FirstName = contact.FirstName,
+                LastName = contact.LastName,
+                EmailAddress = contact.EmailAddress,
+                Title = contact.Title,
+                Company = contact.Company,
+                Status = contact.Status
+            };
+            return dto;
         }
     }
 }
