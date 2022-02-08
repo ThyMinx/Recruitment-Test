@@ -57,6 +57,9 @@ namespace Vuture.Persistence.Repositories
         {
             try
             {
+                //Bonus stuff.
+                CheckIfEmailExists(Contact);
+
                 _context.Contacts.Add(Contact);
                 _context.SaveChanges();
                 return Contact;
@@ -67,10 +70,20 @@ namespace Vuture.Persistence.Repositories
             }
         }
 
+        private void CheckIfEmailExists(Contact contact)
+        {
+            bool emailExists = _context.Contacts.Where(c => c.EmailAddress.ToLower() == contact.EmailAddress.ToLower() && c.Id != contact.Id).Any();
+            if (emailExists)
+                throw new BadRequestExceptionResponse("There is already a contact with the email: " + contact.EmailAddress);
+        }
+
         public Contact UpdateContact(Contact Contact)
         {
             try
             {
+                //Bonus stuff.
+                CheckIfEmailExists(Contact);
+
                 Contact selected = _context.Contacts.Where(c => c.Id == Contact.Id).FirstOrDefault();
                 if (selected == null)
                 {

@@ -20,10 +20,6 @@ namespace Vuture.Test.Unit.Persistence
             return new ContactDbContext(options);
         }
 
-        [SetUp]
-        public void SetUp()
-        {
-        }
         #region Tests for Create
         [Test]
         [TestCase("James", "Cairns", "james.cairns@email.com", "Vuture", "Working", "Developer")]
@@ -43,6 +39,38 @@ namespace Vuture.Test.Unit.Persistence
             var db = GetTestDbContext();
             var contactRepo = new ContactRepository(db);
             contactRepo.CreateContact(contact);
+        }
+
+        [Test]
+        [TestCase("James", "Cairns", "james.cairns@email.com", "Vuture", "Working", "Developer")]
+        [TestCase("Fawn", "Massey", "mrs@email.com", "Vuture", "Working", "Lead")]
+        [TestCase("Ian", "Tufft", "some@email.com", "Bank", "Holiday", "Accounts")]
+        public void Test_CreateContact_Should_ThrowException(string firstName, string lastName, string email, string company, string status, string title)
+        {
+            var dbContact = new Contact()
+            {
+                Id = 1,
+                FirstName = "a",
+                LastName = "a",
+                EmailAddress = email,
+                Company = "a",
+                Status = "a",
+                Title = "a"
+            };
+            var contact = new Contact()
+            {
+                FirstName = firstName,
+                LastName = lastName,
+                EmailAddress = email,
+                Company = company,
+                Status = status,
+                Title = title
+            };
+            var db = GetTestDbContext();
+            db.Contacts.Add(dbContact);
+            db.SaveChanges();
+            var contactRepo = new ContactRepository(db);
+            Assert.Throws<BadRequestExceptionResponse>(() => contactRepo.CreateContact(contact));
         }
         #endregion
 
@@ -144,6 +172,38 @@ namespace Vuture.Test.Unit.Persistence
             db.SaveChanges();
             var contactRepo = new ContactRepository(db);
             contactRepo.UpdateContact(contact);
+        }
+
+        [Test]
+        [TestCase(1, "James", "Cairns", "Judy.Law@email.com", "Vuture", "Working", "Developer")]
+        [TestCase(3, "Fawn", "Massey", "Deals@email.au", "Vuture", "Working", "Lead")]
+        [TestCase(5, "Ian", "Tufft", "Chris@email.com", "Bank", "Holiday", "Accounts")]
+        public void Test_UpdateContact_Should_ThrowException(int id, string firstName, string lastName, string email, string company, string status, string title)
+        {
+            List<Contact> data = new List<Contact>()
+            {
+                new Contact { Id = 1,FirstName = "James",LastName = "Cairns",EmailAddress = "James.Cairns@email.com",Company = "Vuture",Status = "Working",Title = "Developer" },
+                new Contact { Id = 2,FirstName = "Judy",LastName = "Law",EmailAddress = "Judy.Law@email.com",Company = "Vuture",Status = "Working",Title = "Lead" },
+                new Contact { Id = 3,FirstName = "Aaron",LastName = "Aaronson",EmailAddress = "Aaron@email.co.uk",Company = "Vuture",Status = "Working",Title = "Developer" },
+                new Contact { Id = 4,FirstName = "Daniel",LastName = "Dealer",EmailAddress = "Deals@email.au",Company = "Vuture",Status = "Working",Title = "Accounts" },
+                new Contact { Id = 5,FirstName = "Dave",LastName = "Bonting",EmailAddress = "Dave@email.co",Company = "Something",Status = "Working",Title = "Developer" },
+                new Contact { Id = 6,FirstName = "Chris",LastName = "Drews",EmailAddress = "Chris@email.com",Company = "Something",Status = "Working",Title = "Lead" }
+            };
+            var contact = new Contact()
+            {
+                Id = id,
+                FirstName = firstName,
+                LastName = lastName,
+                EmailAddress = email,
+                Company = company,
+                Status = status,
+                Title = title
+            };
+            var db = GetTestDbContext();
+            data.ForEach(c => db.Contacts.Add(c));
+            db.SaveChanges();
+            var contactRepo = new ContactRepository(db);
+            Assert.Throws<BadRequestExceptionResponse>(() => contactRepo.UpdateContact(contact));
         }
         #endregion
 

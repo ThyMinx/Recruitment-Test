@@ -63,6 +63,27 @@ namespace Vuture.Test.Unit.Services
             Assert.AreEqual(createdDbContact.Status, result.Status);
             Assert.AreEqual(createdDbContact.Title, result.Title);
         }
+        [Test]
+        [TestCase("James", "Cairns", "cairns.james@email.com", "Vuture", "Holiday", "Lead")]
+        [TestCase("Fawn", "Massey", "mrs@email.com", "Vuture", "Working", "Lead")]
+        [TestCase("Ian", "Tufft", "some@email.com", "Bank", "Holiday", "Accounts")]
+        public void Test_CreateContact_Should_Throw400Exception(string firstName, string lastName, string email, string company, string status, string title)
+        {
+            var dtoPassedIn = new CreateContactDto()
+            {
+                FirstName = firstName,
+                LastName = lastName,
+                EmailAddress = email,
+                Company = company,
+                Status = status,
+                Title = title
+            };
+
+            _mockRepo.Setup(x => x.CreateContact(It.IsAny<Contact>())).Throws(new BadRequestExceptionResponse("There is already a contact with the email: " + email));
+
+            var service = GetContactService();
+            Assert.Throws<BadRequestExceptionResponse>(() => service.CreateContact(dtoPassedIn));
+        }
         #endregion
 
         #region Tests for Read
@@ -132,17 +153,6 @@ namespace Vuture.Test.Unit.Services
                 Title = title
             };
 
-            var expectedResult = new ReadContactDto()
-            {
-                Id = id,
-                FirstName = firstName,
-                LastName = lastName,
-                EmailAddress = email,
-                Company = company,
-                Status = status,
-                Title = title
-            };
-
             var dtoPassedIn = new UpdateContactDto()
             {
                 FirstName = firstName,
@@ -159,53 +169,20 @@ namespace Vuture.Test.Unit.Services
             var service = GetContactService();
             var result = service.UpdateContactById(id, dtoPassedIn);
             Assert.IsTrue(result.GetType().Equals(typeof(ReadContactDto)));
-            Assert.AreEqual(expectedResult.Id, result.Id);
-            Assert.AreEqual(expectedResult.FirstName, result.FirstName);
-            Assert.AreEqual(expectedResult.LastName, result.LastName);
-            Assert.AreEqual(expectedResult.EmailAddress, result.EmailAddress);
-            Assert.AreEqual(expectedResult.Company, result.Company);
-            Assert.AreEqual(expectedResult.Status, result.Status);
-            Assert.AreEqual(expectedResult.Title, result.Title);
+            Assert.AreEqual(updatedDbContact.Id, result.Id);
+            Assert.AreEqual(updatedDbContact.FirstName, result.FirstName);
+            Assert.AreEqual(updatedDbContact.LastName, result.LastName);
+            Assert.AreEqual(updatedDbContact.EmailAddress, result.EmailAddress);
+            Assert.AreEqual(updatedDbContact.Company, result.Company);
+            Assert.AreEqual(updatedDbContact.Status, result.Status);
+            Assert.AreEqual(updatedDbContact.Title, result.Title);
         }
         [Test]
         [TestCase(1, "James", "Cairns", "cairns.james@email.com", "Vuture", "Holiday", "Lead")]
         [TestCase(3, "Fawn", "Massey", "mrs@email.com", "Vuture", "Working", "Lead")]
         [TestCase(4, "Ian", "Tufft", "some@email.com", "Bank", "Holiday", "Accounts")]
-        public void Test_UpdateContact_Should_ThrowException(int id, string firstName, string lastName, string email, string company, string status, string title)
+        public void Test_UpdateContact_Should_Throw404Exception(int id, string firstName, string lastName, string email, string company, string status, string title)
         {
-            var dbContact = new Contact()
-            {
-                Id = id,
-                FirstName = "a",
-                LastName = "b",
-                EmailAddress = "c",
-                Company = "d",
-                Status = "e",
-                Title = "f"
-            };
-
-            var updatedDbContact = new Contact()
-            {
-                Id = id,
-                FirstName = firstName,
-                LastName = lastName,
-                EmailAddress = email,
-                Company = company,
-                Status = status,
-                Title = title
-            };
-
-            var expectedResult = new ReadContactDto()
-            {
-                Id = id,
-                FirstName = firstName,
-                LastName = lastName,
-                EmailAddress = email,
-                Company = company,
-                Status = status,
-                Title = title
-            };
-
             var dtoPassedIn = new UpdateContactDto()
             {
                 FirstName = firstName,
@@ -221,6 +198,39 @@ namespace Vuture.Test.Unit.Services
 
             var service = GetContactService();
             Assert.Throws<NotFoundRequestExceptionResponse>(() => service.UpdateContactById(id, dtoPassedIn));
+        }
+        [Test]
+        [TestCase(1, "James", "Cairns", "cairns.james@email.com", "Vuture", "Holiday", "Lead")]
+        [TestCase(3, "Fawn", "Massey", "mrs@email.com", "Vuture", "Working", "Lead")]
+        [TestCase(4, "Ian", "Tufft", "some@email.com", "Bank", "Holiday", "Accounts")]
+        public void Test_UpdateContact_Should_Throw400Exception(int id, string firstName, string lastName, string email, string company, string status, string title)
+        {
+            var dbContact = new Contact()
+            {
+                Id = id,
+                FirstName = "a",
+                LastName = "b",
+                EmailAddress = "c",
+                Company = "d",
+                Status = "e",
+                Title = "f"
+            };
+
+            var dtoPassedIn = new UpdateContactDto()
+            {
+                FirstName = firstName,
+                LastName = lastName,
+                EmailAddress = email,
+                Company = company,
+                Status = status,
+                Title = title
+            };
+
+            _mockRepo.Setup(x => x.GetContactById(It.IsAny<int>())).Returns(dbContact);
+            _mockRepo.Setup(x => x.UpdateContact(It.IsAny<Contact>())).Throws(new BadRequestExceptionResponse("There is already a contact with the email: " + email));
+
+            var service = GetContactService();
+            Assert.Throws<BadRequestExceptionResponse>(() => service.UpdateContactById(id, dtoPassedIn));
         }
         #endregion
 

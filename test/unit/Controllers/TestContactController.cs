@@ -95,6 +95,27 @@ namespace Vuture.Test.Unit.Controllers
             Assert.AreEqual(result.StatusCode, new BadRequestExceptionResponse("").StatusCode);
             _mockService.Verify(x => x.CreateContact(dtoPassedIn), Times.Never);
         }
+        [Test]
+        [TestCase("James", "Cairns", "cairns.james@email.com", "Vuture", "Holiday", "Lead")]
+        [TestCase("Fawn", "Tootington", "mrs@email.com", "Vuture", "Working", "Lead")]
+        [TestCase("Ian", "Tufft", "", "Bank", "Holiday", "Accounts")]
+        public void Test_CreateContact_Should_Throw400Exception_DuplicateEmail(string? firstName, string? lastName, string? email, string company, string status, string title)
+        {
+            var dtoPassedIn = new CreateContactDto()
+            {
+                FirstName = firstName,
+                LastName = lastName,
+                EmailAddress = email,
+                Company = company,
+                Status = status,
+                Title = title
+            };
+
+            var controller = GetContactController();
+            _mockService.Setup(m => m.CreateContact(It.IsAny<CreateContactDto>())).Throws(new BadRequestExceptionResponse("There is already a contact with the email: " + email));
+            var result = controller.CreateContact(dtoPassedIn).Result as StatusCodeResult;
+            Assert.AreEqual(result.StatusCode, new BadRequestExceptionResponse("").StatusCode);
+        }
         #endregion
 
         #region Tests for Read
@@ -238,7 +259,7 @@ namespace Vuture.Test.Unit.Controllers
         [TestCase(1, null, "Cairns", "cairns.james@email.com", "Vuture", "Holiday", "Lead")]
         [TestCase(3, "Fawn", null, "mrs@email.com", "Vuture", "Working", "Lead")]
         [TestCase(4, "Ian", "Tufft", null, "Bank", "Holiday", "Accounts")]
-        public void Test_UpdateContact_Should_Throw500Exception(int id, string? firstName, string? lastName, string? email, string company, string status, string title)
+        public void Test_UpdateContact_Should_Throw400Exception(int id, string? firstName, string? lastName, string? email, string company, string status, string title)
         {
             var dtoPassedIn = new UpdateContactDto()
             {
@@ -251,6 +272,29 @@ namespace Vuture.Test.Unit.Controllers
             };
 
             _mockService.Setup(x => x.UpdateContactById(It.IsAny<int>(), It.IsAny<UpdateContactDto>()));
+
+            var controller = GetContactController();
+            var result = controller.UpdateContactById(id, dtoPassedIn).Result as StatusCodeResult;
+            Assert.AreEqual(result.StatusCode, new BadRequestExceptionResponse("").StatusCode);
+        }
+
+        [Test]
+        [TestCase(1, "James", "Cairns", "cairns.james@email.com", "Vuture", "Holiday", "Lead")]
+        [TestCase(3, "Fawn", "Beep", "mrs@email.com", "Vuture", "Working", "Lead")]
+        [TestCase(4, "Ian", "Tufft", "email@email.com", "Bank", "Holiday", "Accounts")]
+        public void Test_UpdateContact_Should_Throw400Exception_DuplicateEmail(int id, string? firstName, string? lastName, string? email, string company, string status, string title)
+        {
+            var dtoPassedIn = new UpdateContactDto()
+            {
+                FirstName = firstName,
+                LastName = lastName,
+                EmailAddress = email,
+                Company = company,
+                Status = status,
+                Title = title
+            };
+
+            _mockService.Setup(x => x.UpdateContactById(It.IsAny<int>(), It.IsAny<UpdateContactDto>())).Throws(new BadRequestExceptionResponse("There is already a contact with the email: " + email));
 
             var controller = GetContactController();
             var result = controller.UpdateContactById(id, dtoPassedIn).Result as StatusCodeResult;
