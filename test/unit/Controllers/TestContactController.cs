@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
 using System.Collections.Generic;
@@ -17,11 +18,12 @@ namespace Vuture.Test.Unit.Controllers
     public class TestContactController
     {
         private Mock<IContactService> _mockService = new Mock<IContactService>();
+        private Mock<ILogger<ContactController>> _mockLogger = new Mock<ILogger<ContactController>>();
         private ContactController _controller;
 
         public ContactController GetContactController()
         {
-            _controller = new ContactController(_mockService.Object);
+            _controller = new ContactController(_mockService.Object, _mockLogger.Object);
             return _controller;
         }
 

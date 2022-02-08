@@ -11,10 +11,12 @@ namespace Vuture.Controllers
     public class ContactController : ControllerBase
     {
         private readonly IContactService _contactService;
+        private readonly ILogger<ContactController> _logger;
 
-        public ContactController(IContactService contactService)
+        public ContactController(IContactService contactService, ILogger<ContactController> logger)
         {
             _contactService = contactService;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -28,19 +30,19 @@ namespace Vuture.Controllers
             }
             catch (NotFoundRequestExceptionResponse ex)
             {
-                //Log exception here
+                _logger.LogError(ex.Message);
                 return new StatusCodeResult(ex.StatusCode);
                 throw ex;
             }
             catch (BadRequestExceptionResponse ex)
             {
-                //Log exception here
+                _logger.LogError(ex.Message);
                 return new StatusCodeResult(ex.StatusCode);
                 throw ex;
             }
             catch (Exception ex)
             {
-                //Log exception here
+                _logger.LogError(ex.Message);
                 throw ex;
             }
             //throw new NotImplementedException();
@@ -58,19 +60,19 @@ namespace Vuture.Controllers
             }
             catch (NotFoundRequestExceptionResponse ex)
             {
-                //Log exception here
+                _logger.LogError(ex.Message);
                 return new StatusCodeResult(ex.StatusCode);
                 throw ex;
             }
             catch (BadRequestExceptionResponse ex)
             {
-                //Log exception here
+                _logger.LogError(ex.Message);
                 return new StatusCodeResult(ex.StatusCode);
                 throw ex;
             }
             catch (Exception ex)
             {
-                //Log exception here
+                _logger.LogError(ex.Message);
                 throw ex;
             }
         }
@@ -87,19 +89,19 @@ namespace Vuture.Controllers
             }
             catch (NotFoundRequestExceptionResponse ex)
             {
-                //Log exception here
+                _logger.LogError(ex.Message);
                 return new StatusCodeResult(ex.StatusCode);
                 throw ex;
             }
             catch (BadRequestExceptionResponse ex)
             {
-                //Log exception here
+                _logger.LogError(ex.Message);
                 return new StatusCodeResult(ex.StatusCode);
                 throw ex;
             }
             catch (Exception ex)
             {
-                //Log exception here
+                _logger.LogError(ex.Message);
                 throw ex;
             }
         }
@@ -115,19 +117,19 @@ namespace Vuture.Controllers
             }
             catch (NotFoundRequestExceptionResponse ex)
             {
-                //Log exception here
+                _logger.LogError(ex.Message);
                 return new StatusCodeResult(ex.StatusCode);
                 throw ex;
             }
             catch (BadRequestExceptionResponse ex)
             {
-                //Log exception here
+                _logger.LogError(ex.Message);
                 return new StatusCodeResult(ex.StatusCode);
                 throw ex;
             }
             catch (Exception ex)
             {
-                //Log exception here
+                _logger.LogError(ex.Message);
                 throw ex;
             }
         }
