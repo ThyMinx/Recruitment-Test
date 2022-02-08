@@ -54,7 +54,7 @@ namespace Vuture.Controllers
             {
                 ModelValidation.ValidateCreateContactDto(createContactDto);
                 ReadContactDto readContactDto = _contactService.CreateContact(createContactDto);
-                return new JsonResult(readContactDto);
+                return new ActionResult<ReadContactDto>(readContactDto);
             }
             catch (NotFoundRequestExceptionResponse ex)
             {

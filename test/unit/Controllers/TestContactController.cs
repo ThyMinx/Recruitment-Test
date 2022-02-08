@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Moq;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
 using Vuture.Controllers;
 using Vuture.Exceptions.ExceptionResponses;
+using Vuture.Models.Dtos;
 using Vuture.Persistence.Repositories.Interfaces;
 using Vuture.Services;
 
@@ -14,49 +16,262 @@ namespace Vuture.Test.Unit.Controllers
     [Category("Unit")]
     public class TestContactController
     {
-        private readonly Mock<IContactRepository> _mockRepo;
-        private Mock<IContactService> _mockService;
-        private static List<Contact> _testContacts = new List<Contact>()
-        {
-            new Contact
-            {
-                FirstName = "Charly",
-                LastName = "Webster",
-                Title = "Head of Engineering",
-                EmailAddress = "charly.webster@vutu.re",
-                Company = "Vuture"
-            },
-            new Contact
-            {
-                FirstName = "Simon",
-                LastName = "Humphries",
-                Title = "Engineering Team Lead",
-                EmailAddress = "simon.humphries@vutu.re",
-                Company = "Vuture"
-            },
-            new Contact
-            {
-                FirstName = "Tufan",
-                LastName = "Unal",
-                Title = "CTO/Founder",
-                EmailAddress = "tufan.unal@vutu.re",
-                Company = "Vuture"
-            },
-            new Contact
-            {
-                FirstName = "Tom",
-                LastName = "Janofsky",
-                Title = "Group CTO",
-                EmailAddress = "tjanofsky@campaignmonitor.com",
-                Company = "CM Group"
-            }
-        };
+        private Mock<IContactService> _mockService = new Mock<IContactService>();
+        private ContactController _controller;
 
-        public ContactController GetController()
+        public ContactController GetContactController()
         {
-            _mockService = new Mock<IContactService>();
-            var contactController = new ContactController(_mockService.Object);
-            return contactController;
+            _controller = new ContactController(_mockService.Object);
+            return _controller;
+        }
+
+        #region Tests for Create
+        [Test]
+        [TestCase("James", "Cairns", "cairns.james@email.com", "Vuture", "Holiday", "Lead")]
+        [TestCase("Fawn", "Massey", "mrs@email.com", "Vuture", "Working", "Lead")]
+        [TestCase("Ian", "Tufft", "some@email.com", "Bank", "Holiday", "Accounts")]
+        [TestCase("James", "Cairns", "cairns.james@email.com", "", "Holiday", "Lead")]
+        [TestCase("Fawn", "Massey", "mrs@email.com", "Vuture", "", "Lead")]
+        [TestCase("Ian", "Tufft", "some@email.com", "Bank", "Holiday", "")]
+        [TestCase("James", "Cairns", "cairns.james@email.com", null, "Holiday", "Lead")]
+        [TestCase("Fawn", "Massey", "mrs@email.com", "Vuture", null, "Lead")]
+        [TestCase("Ian", "Tufft", "some@email.com", "Bank", "Holiday", null)]
+        public void Test_CreateContact_Should_AddContactToDb(string firstName, string lastName, string email, string company, string status, string title)
+        {
+            var createdDbContact = new ReadContactDto()
+            {
+                FirstName = firstName,
+                LastName = lastName,
+                EmailAddress = email,
+                Company = company,
+                Status = status,
+                Title = title
+            };
+
+            var dtoPassedIn = new CreateContactDto()
+            {
+                FirstName = firstName,
+                LastName = lastName,
+                EmailAddress = email,
+                Company = company,
+                Status = status,
+                Title = title
+            };
+
+            _mockService.Setup(x => x.CreateContact(It.IsAny<CreateContactDto>())).Returns(createdDbContact);
+
+            var controller = GetContactController();
+            var result = controller.CreateContact(dtoPassedIn).Value;
+            Assert.IsTrue(result.GetType().Equals(typeof(ReadContactDto)));
+            Assert.AreEqual(createdDbContact.Id, result.Id);
+            Assert.AreEqual(createdDbContact.FirstName, result.FirstName);
+            Assert.AreEqual(createdDbContact.LastName, result.LastName);
+            Assert.AreEqual(createdDbContact.EmailAddress, result.EmailAddress);
+            Assert.AreEqual(createdDbContact.Company, result.Company);
+            Assert.AreEqual(createdDbContact.Status, result.Status);
+            Assert.AreEqual(createdDbContact.Title, result.Title);
+        }
+        [Test]
+        [TestCase("", "Cairns", "cairns.james@email.com", "Vuture", "Holiday", "Lead")]
+        [TestCase("Fawn", "", "mrs@email.com", "Vuture", "Working", "Lead")]
+        [TestCase("Ian", "Tufft", "", "Bank", "Holiday", "Accounts")]
+        [TestCase(null, "Cairns", "cairns.james@email.com", "Vuture", "Holiday", "Lead")]
+        [TestCase("Fawn", null, "mrs@email.com", "Vuture", "Working", "Lead")]
+        [TestCase("Ian", "Tufft", null, "Bank", "Holiday", "Accounts")]
+        public void Test_CreateContact_Should_ThrowException(string? firstName, string? lastName, string? email, string company, string status, string title)
+        {
+            var dtoPassedIn = new CreateContactDto()
+            {
+                FirstName = firstName,
+                LastName = lastName,
+                EmailAddress = email,
+                Company = company,
+                Status = status,
+                Title = title
+            };
+
+            var controller = GetContactController();
+            var result = controller.CreateContact(dtoPassedIn).Result as StatusCodeResult;
+            Assert.AreEqual(result.StatusCode, new BadRequestExceptionResponse("").StatusCode);
+            _mockService.Verify(x => x.CreateContact(dtoPassedIn), Times.Never);
+        }
+        #endregion
+
+        #region Tests for Read
+        [Test]
+        [TestCase(1, "James", "Cairns", "cairns.james@email.com", "Vuture", "Holiday", "Lead")]
+        [TestCase(3, "Fawn", "Massey", "mrs@email.com", "Vuture", "Working", "Lead")]
+        [TestCase(4, "Ian", "Tufft", "some@email.com", "Bank", "Holiday", "Accounts")]
+        public void Test_GetContactById_ShouldReceive_ReadContactDto(int id, string firstName, string lastName, string email, string company, string status, string title)
+        {
+            var contact = new ReadContactDto()
+            {
+                Id = id,
+                FirstName = firstName,
+                LastName = lastName,
+                EmailAddress = email,
+                Company = company,
+                Status = status,
+                Title = title
+            };
+            _mockService.Setup(x => x.GetContactById(It.IsAny<int>())).Returns(contact);
+            var controller = GetContactController();
+
+            var result = controller.GetContactById(id) as JsonResult;
+            var resultObj = result.Value as ReadContactDto;
+
+            Assert.IsNotNull(resultObj);
+            Assert.AreEqual(resultObj.FirstName, contact.FirstName);
+            Assert.AreEqual(resultObj.LastName, contact.LastName);
+            Assert.AreEqual(resultObj.EmailAddress, contact.EmailAddress);
+            Assert.AreEqual(resultObj.Company, contact.Company);
+            Assert.AreEqual(resultObj.Status, contact.Status);
+            Assert.AreEqual(resultObj.Title, contact.Title);
+        }
+
+        [Test]
+        [TestCase(0)]
+        [TestCase(-1)]
+        [TestCase(-5)]
+        public void Test_GetContactById_Should_ThrowException(int id)
+        {
+            _mockService.Setup(x => x.GetContactById(It.IsAny<int>())).Throws(new NotFoundRequestExceptionResponse("No contact with the id: " + id));
+            var controller = GetContactController();
+
+            var result = controller.GetContactById(id) as StatusCodeResult;
+            Assert.AreEqual(result.StatusCode, new NotFoundRequestExceptionResponse("").StatusCode);
+        }
+        #endregion
+
+        #region Tests for Update
+        [Test]
+        [TestCase(1, "James", "Cairns", "cairns.james@email.com", "Vuture", "Holiday", "Lead")]
+        [TestCase(3, "Fawn", "Massey", "mrs@email.com", "Vuture", "Working", "Lead")]
+        [TestCase(4, "Ian", "Tufft", "some@email.com", "Bank", "Holiday", "Accounts")]
+        public void Test_UpdateContact_Should_AddContactToDb(int id, string firstName, string lastName, string email, string company, string status, string title)
+        {
+            var dbContact = new Contact()
+            {
+                Id = id,
+                FirstName = "a",
+                LastName = "b",
+                EmailAddress = "c",
+                Company = "d",
+                Status = "e",
+                Title = "f"
+            };
+
+            var updatedDbContact = new ReadContactDto()
+            {
+                Id = id,
+                FirstName = firstName,
+                LastName = lastName,
+                EmailAddress = email,
+                Company = company,
+                Status = status,
+                Title = title
+            };
+
+            var expectedResult = new ReadContactDto()
+            {
+                Id = id,
+                FirstName = firstName,
+                LastName = lastName,
+                EmailAddress = email,
+                Company = company,
+                Status = status,
+                Title = title
+            };
+
+            var dtoPassedIn = new UpdateContactDto()
+            {
+                FirstName = firstName,
+                LastName = lastName,
+                EmailAddress = email,
+                Company = company,
+                Status = status,
+                Title = title
+            };
+
+            _mockService.Setup(x => x.UpdateContactById(It.IsAny<int>(), It.IsAny<UpdateContactDto>())).Returns(updatedDbContact);
+
+            var controller = GetContactController();
+            var result = controller.UpdateContactById(id, dtoPassedIn).Result as JsonResult;
+            var resultObj = result.Value as ReadContactDto;
+            Assert.IsTrue(result.Value.GetType().Equals(typeof(ReadContactDto)));
+            Assert.AreEqual(expectedResult.Id, resultObj.Id);
+            Assert.AreEqual(expectedResult.FirstName, resultObj.FirstName);
+            Assert.AreEqual(expectedResult.LastName, resultObj.LastName);
+            Assert.AreEqual(expectedResult.EmailAddress, resultObj.EmailAddress);
+            Assert.AreEqual(expectedResult.Company, resultObj.Company);
+            Assert.AreEqual(expectedResult.Status, resultObj.Status);
+            Assert.AreEqual(expectedResult.Title, resultObj.Title);
+        }
+
+        [Test]
+        [TestCase(1, "James", "Cairns", "cairns.james@email.com", "Vuture", "Holiday", "Lead")]
+        [TestCase(3, "Fawn", "Massey", "mrs@email.com", "Vuture", "Working", "Lead")]
+        [TestCase(4, "Ian", "Tufft", "some@email.com", "Bank", "Holiday", "Accounts")]
+        public void Test_UpdateContact_Should_Throw404Exception(int id, string firstName, string lastName, string email, string company, string status, string title)
+        {
+            var dtoPassedIn = new UpdateContactDto()
+            {
+                FirstName = firstName,
+                LastName = lastName,
+                EmailAddress = email,
+                Company = company,
+                Status = status,
+                Title = title
+            };
+
+            _mockService.Setup(x => x.UpdateContactById(It.IsAny<int>(), It.IsAny<UpdateContactDto>())).Throws(new NotFoundRequestExceptionResponse("No contact with the id: " + id)); 
+
+            var controller = GetContactController();
+            var result = controller.UpdateContactById(id, dtoPassedIn).Result as StatusCodeResult;
+            Assert.AreEqual(result.StatusCode, new NotFoundRequestExceptionResponse("").StatusCode);
+        }
+
+        [Test]
+        [TestCase(1, "", "Cairns", "cairns.james@email.com", "Vuture", "Holiday", "Lead")]
+        [TestCase(3, "Fawn", "", "mrs@email.com", "Vuture", "Working", "Lead")]
+        [TestCase(4, "Ian", "Tufft", "", "Bank", "Holiday", "Accounts")]
+        [TestCase(1, null, "Cairns", "cairns.james@email.com", "Vuture", "Holiday", "Lead")]
+        [TestCase(3, "Fawn", null, "mrs@email.com", "Vuture", "Working", "Lead")]
+        [TestCase(4, "Ian", "Tufft", null, "Bank", "Holiday", "Accounts")]
+        public void Test_UpdateContact_Should_Throw500Exception(int id, string? firstName, string? lastName, string? email, string company, string status, string title)
+        {
+            var dtoPassedIn = new UpdateContactDto()
+            {
+                FirstName = firstName,
+                LastName = lastName,
+                EmailAddress = email,
+                Company = company,
+                Status = status,
+                Title = title
+            };
+
+            _mockService.Setup(x => x.UpdateContactById(It.IsAny<int>(), It.IsAny<UpdateContactDto>()));
+
+            var controller = GetContactController();
+            var result = controller.UpdateContactById(id, dtoPassedIn).Result as StatusCodeResult;
+            Assert.AreEqual(result.StatusCode, new BadRequestExceptionResponse("").StatusCode);
+        }
+        #endregion
+
+        #region Tests for Delete
+        [Test]
+        [TestCase(0)]
+        [TestCase(-1)]
+        [TestCase(-5)]
+        public void Test_DeleteContactById_Should_ThrowException(int id)
+        {
+            _mockService.Setup(x => x.DeleteContactById(It.IsAny<int>())).Throws(new NotFoundRequestExceptionResponse("No contact with the id: " + id));
+            var controller = GetContactController();
+
+            //Assert.Throws<NotFoundRequestExceptionResponse>(() => controller.DeleteContactById(id));
+            var result = controller.DeleteContactById(id) as StatusCodeResult;
+            Assert.AreEqual(result.StatusCode, new NotFoundRequestExceptionResponse("").StatusCode);
+            _mockService.Verify(x => x.DeleteContactById(id), Times.Once);
         }
 
         [Test]
@@ -64,83 +279,17 @@ namespace Vuture.Test.Unit.Controllers
         [TestCase(2)]
         [TestCase(3)]
         [TestCase(4)]
-        public void Test_ShouldCall_GetContactById(int id)
+        [TestCase(5)]
+        [TestCase(6)]
+        public void Test_DeleteContactById_ShouldNot_ThrowException(int id)
         {
-            ContactController controller = GetController();
+            _mockService.Setup(x => x.DeleteContactById(It.IsAny<int>()));
+            var controller = GetContactController();
 
-            var result = controller.GetContactById(id);
-
-            //Assert
-            //Check get's called once.
-            _mockService.Verify(m => m.GetContactById(It.IsAny<int>()), Times.Once);
+            var result = controller.DeleteContactById(id) as StatusCodeResult;
+            Assert.AreEqual(result.StatusCode, StatusCodes.Status200OK);
+            _mockService.Verify(x => x.DeleteContactById(id), Times.Once);
         }
-
-        [Test]
-        [TestCase(0)]
-        [TestCase(-1)]
-        public void Test_ShouldReceive_Exception404(int id)
-        {
-            ContactController controller = GetController();
-
-            var result = controller.GetContactById(id);
-
-            //Assert
-            Assert.That(() => controller.GetContactById(id), Throws.TypeOf<NotFoundRequestExceptionResponse>());
-        }
-
-        //[Test]
-        //[TestCase(-1)]
-        //[TestCase(0)]
-        //public void GetContactById_FailTest(int id)
-        //{
-        //    var result = _contactController.GetContactById(id);
-
-        //    Assert.IsNull(result);
-        //}
-
-        //[Test]
-        //[TestCase(1)]
-        //[TestCase(2)]
-        //[TestCase(3)]
-        //[TestCase(4)]
-        //public void GetContactById_PassTest(int id)
-        //{
-        //    var result = _contactController.GetContactById(id);
-        //    var comparison = new JsonResult(_testContacts.Where(x => x.Id == id).FirstOrDefault());
-
-        //    if (result.Equals(comparison))
-        //    {
-        //        Assert.Pass();
-        //    }
-        //    else
-        //    {
-        //        Assert.Fail();
-        //    }
-        //}
-
-        ///// <summary>
-        ///// This test should not be able to delete an item and it should get a 404 Not Found.
-        ///// </summary>
-        ///// <param name="id">This is the id of a contact that is passed in by [TestCase()]</param>
-        //[Test]
-        //[TestCase(-1)]
-        //public void DeleteContactById_FailTest(int id)
-        //{
-        //    var result = (StatusCodeResult)_contactController.DeleteContactById(id);
-
-        //    if (result.StatusCode.Equals(404))
-        //        Assert.Pass();
-        //    else
-        //        Assert.Fail();
-        //}
-
-        ///// <summary>
-        ///// This test should be able to delete an item and it should get a 200 ok.
-        ///// </summary>
-        ///// <param name="id">This is the id of a contact that is passed in by [TestCase()]</param>
-        //public void DeleteContactById_PassTest(int id)
-        //{
-
-        //}
+        #endregion
     }
 }

@@ -54,12 +54,9 @@ namespace Vuture.Validation
             {
                 validationResults.Add(new ValidationResult(entityName));
             }
-            if (Type.GetTypeCode(value.GetType()) == TypeCode.String)
+            else if (Type.GetTypeCode(value.GetType()) == TypeCode.String && string.IsNullOrEmpty(value.ToString()))
             {
-                if (string.IsNullOrEmpty(value.ToString()))
-                {
-                    validationResults.Add(new ValidationResult(entityName));
-                }
+                validationResults.Add(new ValidationResult(entityName));
             }
         }
     }
